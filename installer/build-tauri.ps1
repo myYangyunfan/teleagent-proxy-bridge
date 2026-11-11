@@ -53,7 +53,8 @@ Get-ChildItem $stage -Recurse -Directory -Filter 'captures' -ErrorAction Silentl
 
 Write-Host '[2/5] compressing payload'
 if (Test-Path $zip) { Remove-Item $zip -Force }
-Add-Type -AssemblyName System.IO.Compression.FileSystem
+# .NET Framework needs this assembly registered; PowerShell 7 (.NET) already has the type.
+try { Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction Stop } catch { }
 # includeBaseDirectory must stay false: the Rust side extracts entries as-is.
 [System.IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip, [System.IO.Compression.CompressionLevel]::Optimal, $false)
 Copy-Item $zip (Join-Path $proj 'payload.zip') -Force
