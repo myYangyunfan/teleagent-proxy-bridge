@@ -1,5 +1,8 @@
 # tele-proxy-bridge
 
+[![build](https://github.com/myYangyunfan/teleagent-proxy-bridge/actions/workflows/build.yml/badge.svg)](https://github.com/myYangyunfan/teleagent-proxy-bridge/actions/workflows/build.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-2ea44f.svg)](LICENSE)
+
 把 TeleAgent 桌面应用的模型请求接进本地桥（`127.0.0.1:8787`）：看得见、抓得到、改得了，还能顺手给别的客户端复用。
 
 零依赖（只吃 Node 内置模块）。两种用法：装安装版 exe，或者直接双击 `TeleProxyBridge.cmd` 从源码跑。
@@ -8,7 +11,12 @@
 
 ## 0. 安装版 exe（原生 Tauri）+ 控制台（推荐）
 
-`dist/TeleProxyBridge-Setup-1.0.0-native.exe`（36 MB，自带 node.exe，**不需要管理员权限**）：双击 → 选目录 → 开始安装。
+直接下现成的（不用自己编）：
+
+- **Releases** → 打 tag `v*` 时自动构建并挂上去：<https://github.com/myYangyunfan/teleagent-proxy-bridge/releases>
+- 或者 **Actions → build → 最新一次成功运行 → Artifacts → `TeleProxyBridge-Setup-windows`**（含 exe + `SHA256SUMS.txt`）
+
+本地产物是 `dist/TeleProxyBridge-Setup-1.0.0-native.exe`（36 MB，自带 node.exe，**不需要管理员权限**）：双击 → 选目录 → 开始安装。
 
 ![安装程序](docs/setup-tauri.png)
 
