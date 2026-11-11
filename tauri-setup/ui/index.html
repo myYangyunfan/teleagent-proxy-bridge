@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>TeleProxyBridge 安装程序</title>
+<style>
+  :root{
+    --sun:#F7A928; --sun-2:#FF8A3D; --sky:#3AA8E8; --mint:#22B573; --rose:#E4572E;
+    --ink:#2A241C; --ink-2:#5C5346; --muted:#8C8175;
+    --line:#F0E4D2; --line-2:#EFE9E0;
+    --shadow:0 1px 2px rgba(140,95,30,.05), 0 10px 30px -18px rgba(140,95,30,.35);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; height:100vh; overflow:hidden; color:var(--ink);
+    font:14.5px/1.5 -apple-system,"Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+    background:#FFF9F0;
+    background-image:
+      radial-gradient(760px 360px at 8% -10%, #FFEDC9 0%, rgba(255,237,201,0) 60%),
+      radial-gradient(660px 320px at 98% -6%, #DCEFFF 0%, rgba(220,239,255,0) 58%);
+    display:flex; flex-direction:column; -webkit-font-smoothing:antialiased;
+  }
+  header{display:flex;align-items:center;gap:13px;padding:20px 26px 14px}
+  .mark{width:44px;height:44px;display:grid;place-items:center;border-radius:14px;
+    background:linear-gradient(140deg,#FFC24B,#FF8A3D);box-shadow:0 10px 22px -12px rgba(255,138,61,.95)}
+  h1{font-size:18px;margin:0;letter-spacing:.2px}
+  .sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .ver{margin-left:auto;font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--line);
+    padding:5px 11px;border-radius:999px}
+
+  main{flex:1;overflow:auto;padding:2px 26px 0;display:flex;flex-direction:column;justify-content:center;gap:12px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:20px 22px}
+  .chip{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .step-label{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--sun-2);font-weight:700;margin-bottom:9px}
+
+  .pathrow{display:flex;gap:10px}
+  input[type=text]{
+    flex:1;font:13.5px/1.4 ui-monospace,Consolas,monospace;color:var(--ink);
+    padding:11px 13px;border-radius:12px;border:1.5px solid #EAD9BE;background:#FFFDF8;outline:none;min-width:0
+  }
+  input[type=text]:focus{border-color:var(--sun);background:#fff;box-shadow:0 0 0 4px rgba(247,169,40,.13)}
+  button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:#fff;padding:11px 16px;color:var(--ink)}
+  button:hover{border-color:#F5DDB6}
+  button:disabled{opacity:.55;cursor:not-allowed}
+  .opts{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  label.chk{display:inline-flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink-2);
+    background:#FFFDF8;border:1.5px solid #F0E4D2;border-radius:12px;padding:10px 14px;cursor:pointer;user-select:none}
+  label.chk:hover{border-color:#F5DDB6;background:#FFFBF2}
+  label.chk input{width:16px;height:16px;accent-color:#F7A928;margin:0}
+  label.chk.on{background:linear-gradient(140deg,#FFF4DE,#FFEBC8);border-color:#FFD79E;color:#7A4A00;font-weight:600}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chip{font-size:12.3px;padding:6px 11px;border-radius:9px;background:#F3F7FF;border:1px solid #DCE8FA;color:#2F6BA8;
+    display:inline-flex;align-items:center;gap:7px}
+  .chip.ok{background:#EAF8F0;border-color:#BFE9D3;color:#0F7A48}
+  .chip.warn{background:#FFF4E8;border-color:#FFDFC0;color:#9A5A16}
+  .chip .d{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.75}
+
+  .go{width:100%;margin-top:16px;padding:14px;font-size:15px;font-weight:700;color:#4A2A00;border:0;
+    background:linear-gradient(140deg,#FFC24B,#FF9A3D);box-shadow:0 12px 26px -14px rgba(255,138,61,.95)}
+  .go:hover{filter:brightness(1.03)}
+  .go.secondary{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none;font-weight:600}
+
+  pre.log{margin:12px 0 0;padding:13px 15px;border-radius:13px;background:#FFFDF9;border:1px solid var(--line-2);
+    font:12.2px/1.6 ui-monospace,Consolas,monospace;color:#4A4238;height:132px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+  pre.log:empty:before{content:"等待开始…";color:#B6A894}
+
+  .progress{height:6px;border-radius:99px;background:#F6EDDE;overflow:hidden;margin-top:14px}
+  .progress i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#FFC24B,#FF8A3D);
+    transition:width .4s ease}
+  .done-icon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;margin-bottom:12px;
+    background:linear-gradient(140deg,#8BE3B6,#22B573);box-shadow:0 12px 26px -14px rgba(34,181,115,.9)}
+  footer{padding:12px 26px 16px;font-size:11.8px;color:#A99C8B;text-align:center}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <div class="mark">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="4.6" fill="#fff" opacity=".95"/>
+      <g stroke="#fff" stroke-width="1.9" stroke-linecap="round" opacity=".9">
+        <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"/>
+      </g>
+    </svg>
+  </div>
+  <div><h1>TeleProxyBridge 安装程序</h1><div class="sub">TeleAgent 中转 · 抓包 · 每日签到</div></div>
+  <div class="ver" id="ver">原生安装程序</div>
+</header>
+
+<main>
+  <!-- step 1 -->
+  <section id="s1">
+    <div class="card">
+      <div class="step-label">安装位置</div>
+      <div class="pathrow">
+        <input type="text" id="dir" spellcheck="false">
+        <button id="browse">浏览…</button>
+      </div>
+      <div class="opts">
+        <label class="chk on"><input type="checkbox" id="opt-auto" checked> 开机自启</label>
+        <label class="chk on"><input type="checkbox" id="opt-sc" checked> 桌面快捷方式</label>
+        <label class="chk on"><input type="checkbox" id="opt-launch" checked> 安装后打开控制台</label>
+      </div>
+      <div class="chips" id="chips"></div>
+      <button class="go" id="install">开始安装</button>
+    </div>
+  </section>
+
+  <!-- step 2 -->
+  <section id="s2" class="hide">
+    <div class="card">
+      <div class="step-label">正在安装</div>
+      <pre class="log" id="log"></pre>
+      <div class="progress"><i id="bar"></i></div>
+    </div>
+  </section>
+
+  <!-- step 3 -->
+  <section id="s3" class="hide">
+    <div class="card">
+      <div class="done-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="step-label" style="color:#0F7A48">安装完成</div>
+      <div style="font-size:13.5px;color:var(--ink-2)" id="done-text">程序已就位，桥已启动。</div>
+      <button class="go" id="open-panel">打开控制台</button>
+      <button class="go secondary" id="close">关闭安装程序</button>
+    </div>
+  </section>
+</main>
+
+<footer>全部流量只走本机回环 127.0.0.1 · 卸载信息已写入注册表</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const T = window.__TAURI__;
+let env = null;
+let busy = false;
+
+function chip(text, kind) { return '<span class="chip ' + (kind || '') + '"><i class="d"></i>' + esc(text) + '</span>'; }
+
+function renderChips() {
+  const out = [];
+  if (env) {
+    out.push(env.node_version ? chip('Node ' + env.node_version, 'ok') : chip('未找到 node', 'warn'));
+    out.push(env.teleagent ? chip('TeleAgent 已安装', 'ok') : chip('未检测到 TeleAgent', 'warn'));
+    out.push(env.bridge_up ? chip('桥运行中 :8787', 'ok') : chip('桥未运行（安装后启动）', ''));
+    if (env.installed_dir) out.push(chip('覆盖安装 · ' + env.installed_dir, 'warn'));
+  }
+  $('chips').innerHTML = out.join('');
+}
+
+async function probe() {
+  try {
+    env = await T.core.invoke('probe', { dir: $('dir').value || null });
+    if (!env) return;
+    if (!$('dir').value) $('dir').value = env.default_dir;
+    renderChips();
+  } catch (e) {
+    $('chips').innerHTML = chip('探测失败: ' + e, 'warn');
+  }
+}
+
+function bindChk(id) {
+  const el = $(id);
+  const sync = () => el.parentElement.classList.toggle('on', el.checked);
+  el.addEventListener('change', sync); sync();
+}
+['opt-auto', 'opt-sc', 'opt-launch'].forEach(bindChk);
+
+$('browse').addEventListener('click', async () => {
+  const p = await T.core.invoke('browseDir', { current: $('dir').value });
+  if (p) { $('dir').value = p; probe(); }
+});
+
+let lastStep = 0;
+async function listenLogs() {
+  await T.event.listen('install-log', (ev) => {
+    const { level, msg } = ev.payload;
+    const box = $('log');
+    const atBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 30;
+    box.textContent += (level === 'step' ? '\n▸ ' : '  ') + msg + '\n';
+    if (atBottom) box.scrollTop = box.scrollHeight;
+    if (level === 'step') { lastStep = Math.min(90, lastStep + 16); $('bar').style.width = lastStep + '%'; }
+    if (level === 'done') { $('bar').style.width = '100%'; }
+  });
+}
+
+$('install').addEventListener('click', async () => {
+  if (busy) return;
+  const dir = $('dir').value.trim();
+  if (!dir) return;
+  busy = true;
+  $('s1').classList.add('hide'); $('s2').classList.remove('hide');
+  $('log').textContent = '';
+  $('bar').style.width = '6%'; lastStep = 6;
+  try {
+    await T.core.invoke('install', {
+      opts: { dir, autostart: $('opt-auto').checked, shortcut: $('opt-sc').checked, launch: $('opt-launch').checked }
+    });
+    setTimeout(() => {
+      $('s2').classList.add('hide'); $('s3').classList.remove('hide');
+      $('done-text').innerHTML = '程序已安装到 <span style="font-family:ui-monospace,Consolas,monospace">' + esc(dir) + '</span><br>桥已启动，TeleAgent 已接管。';
+    }, 600);
+  } catch (e) {
+    $('log').textContent += '\n✗ 安装失败：' + e + '\n';
+    busy = false;
+    setTimeout(() => { $('s2').classList.add('hide'); $('s1').classList.remove('hide'); }, 1200);
+  }
+});
+
+$('open-panel').addEventListener('click', async () => {
+  try { await T.core.invoke('openPanel', { dir: $('dir').value }); } catch (_) {}
+});
+$('close').addEventListener('click', async () => {
+  try { await T.core.invoke('closeWindow'); } catch (_) { window.close(); }
+});
+
+listenLogs(); probe();
+</script>
+</body>
+</html>

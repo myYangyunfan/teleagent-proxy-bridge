@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TeleProxyBridge 控制台</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23FF9A3D'/%3E%3Ccircle cx='16' cy='16' r='5' fill='white'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --sun:#F7A928; --sun-2:#FF8A3D; --sky:#3AA8E8; --mint:#22B573; --rose:#E4572E; --violet:#8B7CF6;
+    --ink:#2A241C; --ink-2:#5C5346; --muted:#8C8175;
+    --card:#FFFFFF; --line:#F0E4D2; --line-2:#EFE9E0; --bg:#FFF9F0;
+    --r:18px; --shadow:0 1px 2px rgba(140,95,30,.05), 0 10px 30px -18px rgba(140,95,30,.35);
+    --shadow-lift:0 2px 6px rgba(140,95,30,.08), 0 18px 40px -20px rgba(140,95,30,.45);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--ink);background:var(--bg);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(900px 420px at 12% -8%, #FFEDC9 0%, rgba(255,237,201,0) 62%),
+      radial-gradient(760px 380px at 92% -4%, #DCEFFF 0%, rgba(220,239,255,0) 60%);
+    background-attachment:fixed}
+  .app{display:grid;grid-template-columns:196px 1fr;min-height:100vh}
+  /* sidebar */
+  aside{position:sticky;top:0;height:100vh;padding:20px 14px;border-right:1px solid rgba(240,228,210,.9);
+    background:rgba(255,251,244,.72);backdrop-filter:blur(10px)}
+  .brand{display:flex;align-items:center;gap:10px;padding:2px 6px 18px}
+  .mark{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;flex:0 0 auto;
+    background:linear-gradient(140deg,#FFC24B,#FF8A3D);box-shadow:0 8px 18px -10px rgba(255,138,61,.9)}
+  .brand b{font-size:14.5px;display:block;line-height:1.25}
+  .brand span{font-size:11.5px;color:var(--muted)}
+  nav{display:flex;flex-direction:column;gap:4px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;
+    font-size:13.5px;color:var(--ink-2);border:1px solid transparent;background:none;text-align:left;font-family:inherit}
+  .nav-item:hover{background:#FFF4E4}
+  .nav-item[aria-current="page"]{background:linear-gradient(140deg,#FFF0D2,#FFE4BC);border-color:#FFD79E;color:#7A4A00;font-weight:600}
+  .nav-item .n{margin-left:auto;font-size:11.5px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:0 7px;color:var(--muted)}
+  .side-foot{margin-top:auto;padding:14px 8px 0;font-size:11.5px;color:#A99C8B}
+  aside{display:flex;flex-direction:column}
+  /* main */
+  main{padding:22px 28px 60px;min-width:0}
+  .top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .top h1{font-size:19px;margin:0;letter-spacing:.2px}
+  .top .sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .live{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-2);
+    background:#fff;border:1px solid var(--line);padding:7px 12px;border-radius:999px;box-shadow:var(--shadow)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 3px rgba(34,181,115,.16)}
+  .dot.off{background:#D9A0A0;box-shadow:0 0 0 3px rgba(228,87,46,.14)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+  .card-pad{padding:20px 22px}
+  .sect-title{display:flex;align-items:baseline;gap:10px;margin:22px 2px 12px}
+  .sect-title h2{font-size:15px;margin:0}
+  .sect-title em{font-style:normal;font-size:12.5px;color:var(--muted)}
+  .sect-title .right{margin-left:auto;display:flex;gap:8px}
+  /* hero copy */
+  .hero{display:grid;grid-template-columns:1.35fr 1fr;gap:16px}
+  @media (max-width:1000px){.hero{grid-template-columns:1fr}}
+  .hero h3{margin:0 0 4px;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--sun-2)}
+  .copyrow{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;cursor:pointer;
+    border:1.5px dashed #EAD9BE;background:linear-gradient(180deg,#FFFDF8,#FFF8EC);transition:.16s ease}
+  .copyrow + .copyrow{margin-top:10px}
+  .copyrow:hover{border-color:var(--sun);background:#FFFBF2;transform:translateY(-1px)}
+  .copyrow .k{font-size:11px;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
+  .copyrow .v{font:13px/1.4 ui-monospace,Consolas,monospace;word-break:break-all;font-weight:500}
+  .copyrow .grow{flex:1;min-width:0}
+  .copybtn{flex:0 0 auto;font-size:12px;font-weight:600;color:#8A5A00;background:#FFF0D2;border:1px solid #FFDDA0;
+    padding:6px 10px;border-radius:10px}
+  .copyrow.copied{border-color:#9BE0BE;background:#F3FCF7}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+  .chip{font:12px ui-monospace,Consolas,monospace;background:#F3F7FF;border:1px solid #DCE8FA;color:#2F6BA8;padding:3px 8px;border-radius:8px}
+  .kv{display:flex;justify-content:space-between;gap:12px;font-size:13.5px}
+  .kv + .kv{padding-top:10px;border-top:1px dashed var(--line);margin-top:10px}
+  .kv .k{color:var(--muted)} .kv .v{text-align:right;font-weight:500;word-break:break-all}
+  .ok{color:#0F7A48}.bad{color:var(--rose)}.warnc{color:#9A5A16}
+  .mono{font:12.5px ui-monospace,Consolas,monospace}
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:16px}
+  @media (max-width:1100px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{padding:16px 18px;position:relative;overflow:hidden}
+  .stat .lab{font-size:12.5px;color:var(--muted)}
+  .stat .num{font-size:26px;font-weight:700;letter-spacing:-.6px;margin-top:8px;font-variant-numeric:tabular-nums}
+  .stat .num small{font-size:12.5px;font-weight:500;color:var(--muted);margin-left:4px}
+  .stat .sub{font-size:12px;color:var(--muted);margin-top:6px;min-height:16px}
+  .stat .bar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:linear-gradient(90deg,var(--sun),var(--sun-2))}
+  .bl2 .bar{background:linear-gradient(90deg,#7ED0FF,#3AA8E8)}.bl3 .bar{background:linear-gradient(90deg,#7BE0B0,#22B573)}
+  .bl4 .bar{background:linear-gradient(90deg,#FFD27A,#F7A928)}.bl5 .bar{background:linear-gradient(90deg,#C7BDFF,#8B7CF6)}
+  /* buttons */
+  .actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media (max-width:1100px){.actions{grid-template-columns:repeat(2,1fr)}}
+  button.act{font:inherit;text-align:left;padding:13px 15px;border-radius:14px;cursor:pointer;background:#fff;
+    border:1px solid var(--line);box-shadow:var(--shadow);transition:.15s ease;color:var(--ink)}
+  button.act:hover{transform:translateY(-2px);box-shadow:var(--shadow-lift);border-color:#F5DDB6}
+  button.act b{font-size:13.5px;display:block;margin-bottom:2px}
+  button.act span{font-size:11.5px;color:var(--muted)}
+  button.act.primary{background:linear-gradient(140deg,#FFC24B,#FF9A3D);border-color:transparent;color:#4A2A00}
+  button.act.primary span{color:#7A4A00}
+  button.act:disabled{opacity:.55;cursor:progress}
+  button.mini{font:inherit;font-size:12px;padding:5px 10px;border-radius:9px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  button.mini:hover{border-color:#F5DDB6;background:#FFFBF2}
+  button.mini.danger{color:var(--rose);border-color:#F6D9CF}
+  button.mini.primary{background:linear-gradient(140deg,#FFC24B,#FF9A3D);border-color:transparent;color:#4A2A00;font-weight:600}
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);
+    font-weight:600;padding:0 12px 10px;border-bottom:1px solid var(--line-2)}
+  td{padding:10px 12px;border-bottom:1px solid #F7F1E7;color:var(--ink-2);vertical-align:middle}
+  tr:last-child td{border-bottom:0}
+  tbody tr:hover td{background:#FFFCF6}
+  .pill{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:999px;font-weight:600}
+  .pill.s2{background:#E8F7EE;color:#0F7A48}.pill.s4{background:#FFF3E3;color:#9A5A16}.pill.s5{background:#FDEBE7;color:#B33A1B}
+  .pill.mode{background:#EEF4FF;color:#2F6BA8;font-family:ui-monospace,Consolas,monospace;font-weight:500}
+  .empty{padding:26px 16px;text-align:center;color:var(--muted);font-size:13px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  input[type=text],input[type=number],textarea{font:13px ui-monospace,Consolas,monospace;padding:9px 12px;border-radius:11px;
+    border:1.5px solid #EAD9BE;background:#FFFDF8;outline:none;color:var(--ink);min-width:0}
+  input[type=text]:focus,input[type=number]:focus,textarea:focus{border-color:var(--sun);background:#fff;box-shadow:0 0 0 4px rgba(247,169,40,.13)}
+  textarea{width:100%;min-height:74px;resize:vertical}
+  /* logs */
+  pre.log{margin:0;padding:16px 18px;border-radius:14px;background:#FFFDF9;border:1px solid var(--line-2);
+    font:12.2px/1.6 ui-monospace,Consolas,monospace;color:#4A4238;max-height:300px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+  .tabs{display:flex;gap:8px;margin-bottom:10px}
+  .tab{font:inherit;font-size:12.5px;padding:6px 12px;border-radius:10px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink-2)}
+  .tab[aria-selected="true"]{background:linear-gradient(140deg,#FFF0D2,#FFE7BE);border-color:#FFD79E;color:#7A4A00;font-weight:600}
+  #toast{position:fixed;left:50%;bottom:30px;transform:translate(-50%,22px);opacity:0;pointer-events:none;
+    background:rgba(42,36,28,.94);color:#FFF6E8;font-size:13.5px;padding:10px 18px;border-radius:12px;transition:.22s;z-index:99}
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+  .hide{display:none!important}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6}
+  .secret{font:12.5px ui-monospace,Consolas,monospace;background:#FFF7E8;border:1px dashed #F0D5A8;border-radius:8px;padding:4px 8px;word-break:break-all}
+  .spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(0,0,0,.15);border-top-color:#8A5A00;border-radius:50%;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">
+      <div class="mark">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="4.4" fill="#fff" opacity=".95"/>
+          <g stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".9">
+            <path d="M12 2.8v2.1M12 19.1v2.1M2.8 12h2.1M19.1 12h2.1M5.6 5.6l1.5 1.5M16.9 16.9l1.5 1.5M18.4 5.6l-1.5 1.5M7.1 16.9l-1.5 1.5"/>
+          </g>
+        </svg>
+      </div>
+      <div><b>TeleProxyBridge</b><span>中转 · 号池 · 密钥</span></div>
+    </div>
+    <nav>
+      <button class="nav-item" data-page="overview" aria-current="page">总览</button>
+      <button class="nav-item" data-page="pool">号池 <span class="n" id="n-acc">0</span></button>
+      <button class="nav-item" data-page="models">模型</button>
+      <button class="nav-item" data-page="keys">密钥 <span class="n" id="n-key">0</span></button>
+      <button class="nav-item" data-page="logs">日志</button>
+    </nav>
+    <div class="side-foot">只监听 127.0.0.1<br>数据都在本机</div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <div>
+        <h1 id="page-title">总览</h1>
+        <div class="sub" id="page-sub">TeleAgent 中转状态一览</div>
+      </div>
+      <div class="live"><i class="dot" id="livedot"></i><span id="livetext">连接中…</span></div>
+    </div>
+
+    <!-- ============ 总览 ============ -->
+    <section id="page-overview">
+      <div class="hero">
+        <div class="card card-pad">
+          <h3>OpenAI 兼容接入</h3>
+          <div class="copyrow" id="copy-base" role="button" tabindex="0">
+            <div class="grow"><div class="k">Base URL</div><div class="v" id="v-base">…</div></div>
+            <span class="copybtn" id="btn-base">复制</span>
+          </div>
+          <div class="copyrow" id="copy-key" role="button" tabindex="0">
+            <div class="grow"><div class="k">默认 API Key</div><div class="v" id="v-key">…</div></div>
+            <span class="copybtn" id="btn-key">复制</span>
+          </div>
+          <div class="chips" id="model-chips"></div>
+        </div>
+        <div class="card card-pad">
+          <div class="kv"><span class="k">接管状态</span><span class="v" id="s-hook">…</span></div>
+          <div class="kv"><span class="k">App 实际中转</span><span class="v mono" id="s-relay">…</span></div>
+          <div class="kv"><span class="k">TeleAgent</span><span class="v" id="s-app">…</span></div>
+          <div class="kv"><span class="k">开机自启</span><span class="v" id="s-auto">…</span></div>
+          <div class="kv"><span class="k">当前账号凭证</span><span class="v" id="s-token">…</span></div>
+        </div>
+      </div>
+
+      <section class="stats">
+        <div class="card stat bl1"><div class="lab">账号积分</div><div class="num" id="st-points">—</div><div class="sub" id="st-points-sub">实时余额</div><i class="bar"></i></div>
+        <div class="card stat bl2"><div class="lab">中转请求</div><div class="num" id="st-req">—</div><div class="sub" id="st-req-sub">自启动以来</div><i class="bar"></i></div>
+        <div class="card stat bl3"><div class="lab">今日签到</div><div class="num" id="st-sign">—</div><div class="sub" id="st-sign-sub">—</div><i class="bar"></i></div>
+        <div class="card stat bl4"><div class="lab">号池账号</div><div class="num" id="st-acc">—</div><div class="sub" id="st-acc-sub">—</div><i class="bar"></i></div>
+        <div class="card stat bl5"><div class="lab">密钥调用</div><div class="num" id="st-key">—</div><div class="sub" id="st-key-sub">—</div><i class="bar"></i></div>
+      </section>
+
+      <div class="sect-title"><h2>一键操作</h2><em>都在这台机器上完成</em></div>
+      <section class="actions">
+        <button class="act primary" data-action="hook-install"><b>接管 TeleAgent</b><span>hook 指向本地中转并重启</span></button>
+        <button class="act primary" data-action="signin-now"><b>立即签到</b><span>马上跑一次，不用等排期</span></button>
+        <button class="act" data-action="account-import"><b>导入当前账号</b><span>把 App 里登录的号加进号池</span></button>
+        <button class="act" data-action="app-restart"><b>重启 TeleAgent</b><span>改完 hook 后用</span></button>
+        <button class="act" data-action="hook-uninstall"><b>还原官方中转</b><span>恢复厂商默认地址</span></button>
+        <button class="act" data-action="signin-start"><b>启动签到守护</b><span>每天随机时间自动领</span></button>
+        <button class="act" data-action="signin-stop"><b>停止签到守护</b><span>暂停自动签到</span></button>
+        <button class="act" data-action="open-captures"><b>打开抓包目录</b><span>看原始请求</span></button>
+      </section>
+
+      <div class="sect-title"><h2>最近请求</h2><em id="cap-note">—</em></div>
+      <section class="card" style="overflow:hidden">
+        <table><thead><tr><th>时间</th><th>方式</th><th>路径</th><th>模型</th><th>状态</th><th>耗时</th></tr></thead>
+        <tbody id="cap-body"><tr><td colspan="6" class="empty">还没有请求</td></tr></tbody></table>
+      </section>
+    </section>
+
+    <!-- ============ 号池 ============ -->
+    <section id="page-pool" class="hide">
+      <div class="sect-title"><h2>号池账号</h2><em>每个账号独立 token、独立积分与签到</em>
+        <div class="right">
+          <button class="mini" data-action="account-import">从 TeleAgent 导入</button>
+          <button class="mini primary" id="acc-add-toggle">手动添加</button>
+        </div>
+      </div>
+      <div class="card card-pad hide" id="acc-add-form" style="margin-bottom:14px">
+        <div class="row" style="margin-bottom:10px">
+          <input type="text" id="acc-name" placeholder="备注名（可空）" style="flex:1">
+        </div>
+        <textarea id="acc-token" placeholder="粘贴账号 token（Em9xR4:xxxxx 里的 JWT，或直接 JWT 本体）"></textarea>
+        <div class="row" style="margin-top:10px">
+          <button class="mini primary" id="acc-add-save">加入号池</button>
+          <button class="mini" id="acc-add-cancel">取消</button>
+          <span class="hint">token 从已登录的 TeleAgent 或官方网页登录态里取；只存本机。</span>
+        </div>
+      </div>
+      <section class="card" style="overflow:hidden">
+        <table><thead><tr><th>备注</th><th>租户 / 用户</th><th>积分</th><th>凭证</th><th>状态</th><th style="text-align:right">操作</th></tr></thead>
+        <tbody id="acc-body"><tr><td colspan="6" class="empty">号池还是空的，点右上角导入或手动添加</td></tr></tbody></table>
+      </section>
+      <div class="hint">号池里的 token 用于签到、查积分、探测任务；TeleAgent 客户端的聊天请求仍由它自己签名（厂商按设备/账号签，桥不伪造）。</div>
+    </section>
+
+    <!-- ============ 模型 ============ -->
+    <section id="page-models" class="hide">
+      <div class="sect-title"><h2>模型目录</h2><em>停用的模型不会出现在 /v1/models</em></div>
+      <div class="card card-pad" style="margin-bottom:14px">
+        <div class="row">
+          <input type="text" id="m-name" placeholder="对外模型名，如 gpt-4o" style="flex:1">
+          <input type="text" id="m-target" placeholder="映射到上游，如 chat-flash" style="flex:1">
+          <button class="mini primary" id="m-add">保存别名</button>
+        </div>
+        <div class="hint">不填映射 = 只登记模型名；填了就会把请求体里的 model 改写后再发上游。</div>
+      </div>
+      <section class="card" style="overflow:hidden">
+        <table><thead><tr><th>模型</th><th>映射到</th><th>状态</th><th style="text-align:right">操作</th></tr></thead>
+        <tbody id="model-body"><tr><td colspan="4" class="empty">还没有模型</td></tr></tbody></table>
+      </section>
+    </section>
+
+    <!-- ============ 密钥 ============ -->
+    <section id="page-keys" class="hide">
+      <div class="sect-title"><h2>密钥分发</h2><em>给不同客户端发不同 key，各自限额、各自计数</em>
+        <div class="right"><button class="mini primary" id="key-new">签发新 key</button></div>
+      </div>
+      <div class="card card-pad hide" id="key-new-form" style="margin-bottom:14px">
+        <div class="row">
+          <input type="text" id="k-label" placeholder="标签，如 Cherry Studio" style="flex:1">
+          <input type="number" id="k-limit" placeholder="限额（次数，空=不限）" style="width:210px">
+          <button class="mini primary" id="k-save">生成</button>
+          <button class="mini" id="k-cancel">取消</button>
+        </div>
+        <div class="hint" id="k-result"></div>
+      </div>
+      <section class="card" style="overflow:hidden">
+        <table><thead><tr><th>标签</th><th>Key</th><th>用量</th><th>最近使用</th><th>状态</th><th style="text-align:right">操作</th></tr></thead>
+        <tbody id="key-body"><tr><td colspan="6" class="empty">还没有签发密钥</td></tr></tbody></table>
+      </section>
+      <div class="hint">客户端把 key 放进 <span class="mono">Authorization: Bearer &lt;key&gt;</span> 或 <span class="mono">x-api-key</span> 即可；额度用完会返回 401 invalid_api_key (quota exceeded)。</div>
+    </section>
+
+    <!-- ============ 日志 ============ -->
+    <section id="page-logs" class="hide">
+      <div class="sect-title"><h2>运行日志</h2><em>每 6 秒刷新</em></div>
+      <div class="tabs">
+        <button class="tab" data-log="signin" aria-selected="true">签到日志</button>
+        <button class="tab" data-log="bridge" aria-selected="false">中继日志</button>
+      </div>
+      <pre class="log" id="logbox">加载中…</pre>
+    </section>
+  </main>
+</div>
+<div id="toast"><span id="toast-msg"></span></div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const hhmm = (iso) => { if (!iso) return '—'; const d = new Date(iso); return isNaN(d) ? '—' : d.toLocaleTimeString('zh-CN', {hour12:false}); };
+  const day = (iso) => { if (!iso) return '—'; const d = new Date(iso); return isNaN(d) ? '—' : (d.getMonth()+1) + '/' + d.getDate(); };
+  let toastTimer = 0;
+  const toast = (m) => { $('toast-msg').textContent = m; const t = $('toast'); t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200); };
+  let last = null;
+
+  async function copyText(text) {
+    try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; } } catch (_) {}
+    try { const ta = document.createElement('textarea'); ta.value = text; ta.style.position='fixed'; ta.style.left='-9999px';
+      document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok; } catch (_) { return false; }
+  }
+  async function copy(label, value) {
+    if (!value) { toast('没有可复制的 ' + label); return; }
+    const ok = await copyText(value);
+    toast(ok ? label + ' 已复制' : '复制失败，请手动选中');
+  }
+  function bindCopy(rowId, getValue, label, btnId) {
+    const row = $(rowId);
+    row.addEventListener('click', async () => {
+      await copy(label, getValue());
+      row.classList.add('copied'); const b = $(btnId); const old = b.textContent; b.textContent = '已复制 ✓';
+      setTimeout(() => { row.classList.remove('copied'); b.textContent = old; }, 1500);
+    });
+    row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); row.click(); } });
+  }
+
+  /* ---------------- nav ---------------- */
+  const TITLES = { overview: ['总览','TeleAgent 中转状态一览'], pool: ['号池','多账号管理：积分、签到、凭证'],
+    models: ['模型','模型目录与别名映射'], keys: ['密钥','本地 API key 分发与用量'], logs: ['日志','签到与中继日志'] };
+  function go(page) {
+    document.querySelectorAll('.nav-item').forEach((b) => {
+      if (b.dataset.page === page) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current');
+    });
+    ['overview','pool','models','keys','logs'].forEach((p) => $(('page-' + p)).classList.toggle('hide', p !== page));
+    $('page-title').textContent = TITLES[page][0];
+    $('page-sub').textContent = TITLES[page][1];
+  }
+  document.querySelectorAll('.nav-item').forEach((b) => b.addEventListener('click', () => { go(b.dataset.page); history.replaceState(null, '', '#' + b.dataset.page); }));
+  const initial = (location.hash || '').replace('#', '') || new URLSearchParams(location.search).get('page') || '';
+  if (initial && TITLES[initial]) go(initial);
+
+  /* ---------------- render ---------------- */
+  function render(s) {
+    last = s;
+    const up = s.bridge && s.bridge.ok;
+    $('livedot').className = 'dot' + (up ? '' : ' off');
+    $('livetext').textContent = up ? ('运行中 · :' + s.bridge.port) : '未运行';
+
+    const openai = s.openai || {};
+    $('v-base').textContent = openai.baseUrl || '—';
+    const firstKey = (s.keys || []).find((k) => k.enabled);
+    $('v-key').textContent = openai.key || (firstKey ? firstKey.masked : '未配置');
+    $('model-chips').innerHTML = (s.models || []).filter((m) => m.enabled).slice(0, 8)
+      .map((m) => '<span class="chip">' + esc(m.alias ? m.name + ' → ' + m.alias : m.name) + '</span>').join('') || '<span class="chip">无模型</span>';
+
+    const hook = s.hook || {};
+    $('s-hook').innerHTML = hook.installed ? '<span class="ok">已接管</span>' : '<span class="warnc">未接管</span>';
+    $('s-relay').textContent = (s.app && s.app.relay) || '—';
+    $('s-app').innerHTML = (s.app && s.app.running) ? '<span class="ok">运行中</span>' : '<span class="bad">未运行</span>';
+    $('s-auto').innerHTML = (s.autostart && s.autostart.installed) ? '<span class="ok">已开启</span>' : '<span class="warnc">未开启</span>';
+    const tk = s.token || {};
+    $('s-token').innerHTML = tk.ok ? '<span class="ok">有效</span>' + (tk.expiresInDays != null ? ' <span class="mono" style="color:var(--muted)">剩 ' + esc(tk.expiresInDays) + ' 天</span>' : '') : '<span class="bad">读取失败</span>';
+
+    $('st-points').innerHTML = (s.points == null ? '—' : esc(s.points)) + '<small>分</small>';
+    $('st-points-sub').textContent = tk.ok ? ('账号 ' + esc(tk.tenant || '?')) : '需先登录 TeleAgent';
+    const st = (s.bridge && s.bridge.stats) || {};
+    $('st-req').innerHTML = esc(st.requests || 0) + '<small>次</small>';
+    $('st-req-sub').textContent = (st.errors ? st.errors + ' 失败 · ' : '') + '最近 ' + (st.lastRequestAt ? hhmm(st.lastRequestAt) : '无');
+    const si = s.signin || {}, today = si.today || {};
+    $('st-sign').innerHTML = today.done ? '<span class="ok">已完成</span>' : ((si.daemon && si.daemon.running) ? '<span class="warnc">等待中</span>' : '<span class="bad">未开启</span>');
+    $('st-sign').style.fontSize = '20px';
+    $('st-sign-sub').textContent = today.done ? ((today.last && today.last.at ? '领取于 ' + hhmm(today.last.at) : '今天已完成')) : ((si.daemon && si.daemon.running) ? '守护 pid ' + si.daemon.pid : '守护未运行');
+    const pool = s.pool || {};
+    $('st-acc').innerHTML = esc(pool.accounts || 0) + '<small>个</small>';
+    $('st-acc-sub').textContent = (pool.enabledAccounts || 0) + ' 个启用';
+    $('st-key').innerHTML = esc(pool.totalUsed || 0) + '<small>次</small>';
+    $('st-key-sub').textContent = (pool.activeKeys || 0) + ' 个可用 key';
+
+    $('n-acc').textContent = pool.accounts || 0;
+    $('n-key').textContent = pool.activeKeys || 0;
+
+    // captures
+    const cap = (s.bridge && s.bridge.captures) || {};
+    $('cap-note').textContent = cap.count ? (cap.count + ' 条') : '—';
+    const items = cap.items || [];
+    $('cap-body').innerHTML = items.length ? items.map((r) => {
+      const code = Number(r.status) || 0;
+      const cls = code >= 500 || code === 0 ? 's5' : code >= 400 ? 's4' : 's2';
+      return '<tr><td>' + esc(hhmm(r.at)) + '</td><td><span class="pill mode">' + esc(r.method || '') + '</span></td>' +
+        '<td class="mono" style="font-size:12px">' + esc((r.path || '').slice(0, 60)) + '</td>' +
+        '<td class="mono" style="font-size:12px">' + esc(r.model || '—') + '</td>' +
+        '<td><span class="pill ' + cls + '">' + esc(code || '—') + '</span></td>' +
+        '<td class="mono" style="font-size:12px">' + (r.durationMs != null ? esc(r.durationMs) + ' ms' : '—') + '</td></tr>';
+    }).join('') : '<tr><td colspan="6" class="empty">还没有请求，去 TeleAgent 里聊一句就有了</td></tr>';
+
+    renderAccounts(s);
+    renderModels(s);
+    renderKeys(s);
+  }
+
+  function renderAccounts(s) {
+    const rows = s.accounts || [];
+    $('acc-body').innerHTML = rows.length ? rows.map((a) => {
+      const probe = a.lastProbe || null;
+      const expCls = (a.expiresInDays != null && a.expiresInDays < 3) ? 'warnc' : 'ok';
+      return '<tr>' +
+        '<td><b>' + esc(a.name) + '</b></td>' +
+        '<td class="mono" style="font-size:12px">' + esc(a.tenant || '?') + ' / ' + esc((a.userId || '').slice(-8)) + '</td>' +
+        '<td>' + (probe && probe.points != null ? esc(probe.points) : '—') + '</td>' +
+        '<td class="' + expCls + '">' + (a.expiresInDays != null ? (a.expiresInDays > 0 ? '剩 ' + a.expiresInDays + ' 天' : '已过期') : '—') + '</td>' +
+        '<td>' + (a.enabled ? '<span class="pill s2">启用</span>' : '<span class="pill s4">停用</span>') +
+          (probe ? ' <span class="mono" style="font-size:11px;color:var(--muted)">' + esc(probe.ok ? '探测 ' + day(probe.at) + ' ' + hhmm(probe.at) : '失败') + '</span>' : '') + '</td>' +
+        '<td style="text-align:right;white-space:nowrap">' +
+          '<button class="mini" data-acc-probe="' + esc(a.id) + '">探测</button> ' +
+          '<button class="mini" data-acc-toggle="' + esc(a.id) + '" data-enabled="' + (a.enabled ? '0' : '1') + '">' + (a.enabled ? '停用' : '启用') + '</button> ' +
+          '<button class="mini danger" data-acc-del="' + esc(a.id) + '">移除</button>' +
+        '</td></tr>';
+    }).join('') : '<tr><td colspan="6" class="empty">号池还是空的，点右上角导入或手动添加</td></tr>';
+  }
+
+  function renderModels(s) {
+    const rows = s.models || [];
+    $('model-body').innerHTML = rows.length ? rows.map((m) => (
+      '<tr><td class="mono">' + esc(m.name) + '</td>' +
+      '<td class="mono">' + (m.alias ? '<span class="pill mode">' + esc(m.alias) + '</span>' : '—') + '</td>' +
+      '<td>' + (m.enabled ? '<span class="pill s2">启用</span>' : '<span class="pill s4">停用</span>') + '</td>' +
+      '<td style="text-align:right;white-space:nowrap">' +
+        '<button class="mini" data-model-toggle="' + esc(m.name) + '" data-enabled="' + (m.enabled ? '0' : '1') + '">' + (m.enabled ? '停用' : '启用') + '</button> ' +
+        (m.alias ? '<button class="mini danger" data-model-clear="' + esc(m.name) + '">清除别名</button>' : '') +
+      '</td></tr>'
+    )).join('') : '<tr><td colspan="4" class="empty">还没有模型</td></tr>';
+  }
+
+  function renderKeys(s) {
+    const rows = s.keys || [];
+    $('key-body').innerHTML = rows.length ? rows.map((k) => {
+      const pct = k.limit ? Math.min(100, Math.round((k.used / k.limit) * 100)) : null;
+      return '<tr><td><b>' + esc(k.label) + '</b></td>' +
+        '<td class="mono" style="font-size:12px">' + esc(k.masked) + '</td>' +
+        '<td>' + esc(k.used) + (k.limit ? ' / ' + esc(k.limit) : '') + (pct != null ? ' <span class="mono" style="font-size:11px;color:var(--muted)">' + pct + '%</span>' : '') + '</td>' +
+        '<td class="mono" style="font-size:12px">' + (k.lastUsedAt ? hhmm(k.lastUsedAt) : '—') + '</td>' +
+        '<td>' + (k.enabled ? '<span class="pill s2">可用</span>' : '<span class="pill s4">停用</span>') + '</td>' +
+        '<td style="text-align:right;white-space:nowrap">' +
+          '<button class="mini" data-key-toggle="' + esc(k.id) + '" data-enabled="' + (k.enabled ? '0' : '1') + '">' + (k.enabled ? '停用' : '启用') + '</button> ' +
+          '<button class="mini danger" data-key-del="' + esc(k.id) + '">吊销</button>' +
+        '</td></tr>';
+    }).join('') : '<tr><td colspan="6" class="empty">还没有签发密钥</td></tr>';
+  }
+
+  /* ---------------- actions ---------------- */
+  async function act(action, payload = {}, opts = {}) {
+    try {
+      const r = await fetch('/admin/action', {
+        method: 'POST', headers: { 'content-type': 'application/json', 'x-tpb-admin': '1' },
+        body: JSON.stringify({ action, ...payload })
+      });
+      const j = await r.json();
+      if (!opts.quiet) toast(j.ok ? (j.message || '完成') : ('失败：' + (j.error || r.status)));
+      setTimeout(poll, 300);
+      return j;
+    } catch (e) { if (!opts.quiet) toast('失败：' + e.message); return null; }
+  }
+  document.querySelectorAll('button.act[data-action]').forEach((b) => {
+    b.addEventListener('click', async () => {
+      const span = b.querySelector('span'); const old = span.textContent;
+      b.disabled = true; span.innerHTML = '<i class="spin"></i> 执行中…';
+      await act(b.dataset.action);
+      b.disabled = false; span.textContent = old;
+    });
+  });
+
+  // delegated clicks (tables)
+  document.addEventListener('click', async (e) => {
+    const t = e.target.closest('button');
+    if (!t) return;
+    if (t.dataset.accProbe) act('account-probe', { id: t.dataset.accProbe });
+    else if (t.dataset.accToggle) act('account-toggle', { id: t.dataset.accToggle, enabled: t.dataset.enabled === '1' });
+    else if (t.dataset.accDel) { if (confirm('确定移出号池？')) act('account-remove', { id: t.dataset.accDel }); }
+    else if (t.dataset.keyToggle) act('key-toggle', { id: t.dataset.keyToggle, enabled: t.dataset.enabled === '1' });
+    else if (t.dataset.keyDel) { if (confirm('吊销这个密钥？客户端会立刻失效。')) act('key-revoke', { id: t.dataset.keyDel }); }
+    else if (t.dataset.modelToggle) act('model-toggle', { name: t.dataset.modelToggle, enabled: t.dataset.enabled === '1' });
+    else if (t.dataset.modelClear) act('model-alias', { name: t.dataset.modelClear, target: '' });
+  });
+
+  // forms
+  $('acc-add-toggle').addEventListener('click', () => { $('acc-add-form').classList.toggle('hide'); });
+  $('acc-add-cancel').addEventListener('click', () => $('acc-add-form').classList.add('hide'));
+  $('acc-add-save').addEventListener('click', async () => {
+    const token = $('acc-token').value.trim();
+    if (!token) { toast('先粘贴 token'); return; }
+    const j = await act('account-add', { name: $('acc-name').value.trim(), token });
+    if (j && j.ok) { $('acc-token').value = ''; $('acc-name').value = ''; $('acc-add-form').classList.add('hide'); }
+  });
+
+  $('m-add').addEventListener('click', async () => {
+    const name = $('m-name').value.trim(), target = $('m-target').value.trim();
+    if (!name) { toast('填个模型名'); return; }
+    await act('model-alias', { name, target });
+    $('m-name').value = ''; $('m-target').value = '';
+  });
+
+  $('key-new').addEventListener('click', () => $('key-new-form').classList.toggle('hide'));
+  $('k-cancel').addEventListener('click', () => $('key-new-form').classList.add('hide'));
+  $('k-save').addEventListener('click', async () => {
+    const j = await act('key-create', { label: $('k-label').value.trim(), limit: $('k-limit').value.trim() });
+    if (j && j.ok && j.detail && j.detail.key) {
+      $('k-result').innerHTML = '新密钥（只显示这一次）：<span class="secret">' + esc(j.detail.key) + '</span> ' +
+        '<button class="mini" id="k-copy">复制</button>';
+      $('k-copy').onclick = () => copy('API Key', j.detail.key);
+      $('k-label').value = ''; $('k-limit').value = '';
+    }
+  });
+
+  /* ---------------- polling ---------------- */
+  async function poll() {
+    try {
+      const r = await fetch('/admin/state', { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      render(await r.json());
+    } catch (e) { $('livetext').textContent = '桥未响应'; $('livedot').className = 'dot off'; }
+  }
+  let logWhich = 'signin';
+  async function loadLog() {
+    try {
+      const r = await fetch('/admin/logs?which=' + logWhich + '&bytes=20000', { cache: 'no-store' });
+      const j = await r.json();
+      if (j.ok) { const box = $('logbox'); const atBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 40;
+        box.textContent = j.text || '(空)'; if (atBottom) box.scrollTop = box.scrollHeight; }
+    } catch (_) {}
+  }
+  document.querySelectorAll('.tab[data-log]').forEach((t) => t.addEventListener('click', () => {
+    logWhich = t.dataset.log;
+    document.querySelectorAll('.tab[data-log]').forEach((x) => x.setAttribute('aria-selected', String(x === t)));
+    loadLog();
+  }));
+
+  bindCopy('copy-base', () => (last && last.openai && last.openai.baseUrl) || '', 'Base URL', 'btn-base');
+  bindCopy('copy-key', () => (last && last.openai && last.openai.key) || '', 'API Key', 'btn-key');
+
+  poll(); loadLog();
+  setInterval(poll, 5000); setInterval(loadLog, 6000);
+})();
+</script>
+</body>
+</html>

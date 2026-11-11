@@ -1,0 +1,99 @@
+{
+  "listen": {
+    "host": "127.0.0.1",
+    "port": 8787
+  },
+  "upstreams": [
+    {
+      "name": "teleagent",
+      "baseUrl": "https://agent.teleai.com.cn/superCowork/sapi/api/v1",
+      "match": [
+        "/api/v1",
+        "/superCowork"
+      ],
+      "headers": {},
+      "timeoutMs": 300000
+    },
+    {
+      "name": "fallback",
+      "baseUrl": "https://api.deepseek.com/v1",
+      "match": [
+        "/api/v1"
+      ],
+      "headers": {
+        "authorization": "Bearer sk-your-own-key"
+      },
+      "timeoutMs": 300000
+    }
+  ],
+  "openai": {
+    "enabled": true,
+    "prefix": "/v1",
+    "requireKey": true,
+    "keys": [
+      "sk-tele-local"
+    ],
+    "upstream": "teleagent",
+    "headers": {},
+    "models": [
+      "chat-flagship",
+      "chat-pro",
+      "chat-flash",
+      "chat-lite",
+      "chat-nano"
+    ]
+  },
+  "modelAliases": {
+    "gpt-4o-mini": "chat-flash",
+    "gpt-4o": "chat-flagship"
+  },
+  "failover": {
+    "enabled": true,
+    "onStatusCode": [
+      429,
+      500,
+      502,
+      503,
+      504
+    ]
+  },
+  "capture": {
+    "enabled": true,
+    "dir": "./captures",
+    "maxBodyBytes": 4194304,
+    "rotateBytes": 67108864,
+    "redactHeaders": [
+      "authorization",
+      "x-token",
+      "cookie",
+      "x-sa-signature",
+      "x-api-key"
+    ]
+  },
+  "limits": {
+    "maxRequestBytes": 33554432
+  },
+  "admin": {
+    "enabled": true
+  },
+  "logLevel": "info",
+  "signin": {
+    "enabled": true,
+    "origin": "https://agent.teleai.com.cn",
+    "apiPrefix": "/superCowork/sapi",
+    "window": {
+      "start": "08:20",
+      "end": "11:40"
+    },
+    "catchupUntil": "23:30",
+    "taskTypes": [
+      "daily_login"
+    ],
+    "preClaimDelayMs": [
+      2500,
+      9000
+    ],
+    "stateFile": ".signin-state.json",
+    "logFile": "signin.log"
+  }
+}

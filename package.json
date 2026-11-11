@@ -1,0 +1,23 @@
+{
+  "name": "tele-proxy-bridge",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["teleagent", "reverse-proxy", "openai-compatible", "windows", "local-first"],
+  "os": ["win32"],
+  "description": "Local reverse proxy / OpenAI-compatible gateway for the TeleAgent desktop app",
+  "bin": {
+    "tele-proxy-bridge": "./src/cli.mjs"
+  },
+  "scripts": {
+    "start": "node src/cli.mjs serve",
+    "doctor": "node src/cli.mjs doctor",
+    "test": "node --test test/bridge.test.mjs --test-force-exit",
+    "up": "node src/cli.mjs up",
+    "down": "node src/cli.mjs down",
+    "status": "node src/cli.mjs status"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
