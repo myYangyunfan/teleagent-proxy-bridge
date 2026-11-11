@@ -110,8 +110,13 @@ finally { Pop-Location }
 
 Write-Host '[5/5] copying to dist'
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
-$src = Join-Path $proj 'target/x86_64-pc-windows-gnu/release/teleproxybridge-setup.exe'
-if (-not (Test-Path $src)) { throw ('build output missing: ' + $src) }
+# MSVC builds land in target/release, GNU ones under target/<triple>/release.
+$candidates = @(
+  (Join-Path $proj 'target/release/teleproxybridge-setup.exe'),
+  (Join-Path $proj 'target/x86_64-pc-windows-gnu/release/teleproxybridge-setup.exe')
+) | Where-Object { Test-Path $_ } | Sort-Object { (Get-Item $_).LastWriteTime } -Descending
+$src = $candidates | Select-Object -First 1
+if (-not $src) { throw ('build output missing in target/release and target/x86_64-pc-windows-gnu/release') }
 $out = Join-Path $dist ('TeleProxyBridge-Setup-' + $Version + '-native.exe')
 Copy-Item $src $out -Force
 $exe = Get-Item $out
