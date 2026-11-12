@@ -66,7 +66,7 @@
 ![号池](docs/panel-pool.png)
 
 - **从 TeleAgent 导入**：一键读当前客户端登录态（DPAPI + AES-256-GCM），加进号池
-- **手动添加**：粘贴任意账号的 JWT（`Em9xR4:xxx` 里的那段也行），自动解出 tenant / userId / 过期时间
+- **手动添加**：粘贴任意账号的 JWT（`DEMO01:xxx` 里的那段也行），自动解出 tenant / userId / 过期时间
 - 每行显示租户、用户、实时积分、凭证剩余天数、启停状态；支持**探测**（跑一次 `checkDayTask` + `points/detail`）、停用、移除
 - 去重按 `tenant + userId`，重复导入只更新 token，不会堆垃圾行
 - 数据落在 `data/pool.json`（已在 .gitignore），token 明文只存本机
@@ -202,7 +202,7 @@ Node 找不到时 `TeleProxyBridge.cmd` 会按顺序找：`runtime\node.exe` →
 
 ```
 $ node src/cli.mjs signin --dry-run
-token exp: 2026-11-16T17:59:52.000Z  tenant=Em9xR4
+token exp: 2026-11-16T17:59:52.000Z  tenant=DEMO01
   info  checkDayTask -> HTTP 200 code 200
   info  task: 双11福利狂欢季🔥 | status=fixed | type=web | https://.../meter/teleagent/user/portal/campaign
   info  task: 每日可领100积分 | status=completed | type=api | /superCowork/sapi/user/portal/companyStore/checkTask?type=daily_login
@@ -269,7 +269,7 @@ TeleAgent 的 Go 内核会对「它实际 dial 的 URL」签名（`X-SA-Sign-Ver
 | Tauri 安装包卸载 | ✅ | 用注册表里的 `UninstallString` 跑：`uninstall entry: removed` / `hook: restored` / `deleting <dir>`，12 秒后目录消失、8787 无监听 |
 | 工具链无 MSVC 也能编 | ✅ | 本机没有 `link.exe`/`Windows SDK`，走 GNU 工具链 + MinGW gcc 编出 release（`cargo build --release` 2m22s） |
 | 控制台页面 | ✅ | `http://127.0.0.1:8787/ui` 200；面板点「立即签到」真的跑了 `checkDayTask -> HTTP 200` 并落到 `signin.log`、状态写成 `done` |
-| 号池能导入与本机多账号 | ✅ | `account-import` 读到 `Em9xR4 / 2119672346402856960`（剩 5 天），`account-probe` 回 `积分 6100，任务 2`；重复导入按 tenant+userId 去重（单测覆盖） |
+| 号池能导入与本机多账号 | ✅ | `account-import` 读到 `DEMO01 / 1000123456789012345`（剩 5 天），`account-probe` 回 `积分 6100，任务 2`；重复导入按 tenant+userId 去重（单测覆盖） |
 | 密钥分发与限额 | ✅ | 签发 `sk-tpb-…` 后调用 `/v1/chat/completions`：本地放行并计数（`used` +1），上游仍 `401`；错误 key 本地 `401 invalid_api_key`；超额 key 单测回 `reason=quota` |
 | 模型别名与停用 | ✅ | `gpt-4o → chat-flash` 写入后出现在 `/admin/state.models` 与 `/v1/models`；停用项被过滤（单测覆盖） |
 | 安装包/快捷方式带图标 | ✅ | `make-icon.mjs` 生成 7 尺寸 `icon.ico`（太阳标）；payload 带 `icon.ico`，快捷方式 `IconLocation` 指向它，窗口/任务栏用同一枚 |

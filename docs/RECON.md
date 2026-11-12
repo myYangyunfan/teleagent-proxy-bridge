@@ -45,10 +45,10 @@ Go 内核里出现的签名头常量：`X-SA-Sign-Version`（值 `superagent-aut
 
 ## 3. 本地登录态（可读，已实现）
 
-- `current-owner.json` → `{"ownerDir":"v1_public_2119672346402856960","tenantId":"public","userId":"...","generation":1}`
+- `current-owner.json` → `{"ownerDir":"v1_public_1000123456789012345","tenantId":"public","userId":"...","generation":1}`
 - `users\<ownerDir>\app-auth\token.json`：`{version:1, encryptedToken:"v10...", encrypted:true, scheme:"safe_storage", encryptedMeta:"v10..."}`
   - 解密：`Local State` 的 `os_crypt.encrypted_key`（base64，去掉前缀 `DPAPI`）→ Windows DPAPI(CurrentUser) → 32 字节 AES key → `v10` 结构 = 3 字节前缀 + 12 字节 nonce + 密文 + 16 字节 tag，AES-256-GCM。
-  - 明文形如 `Em9xR4:eyJhbGciOiJIUzI1NiJ9...`（tenant:JWT），claims: `tenant/userId/accountId/exp/nbf/jti`，有效期 7 天。
+  - 明文形如 `DEMO01:eyJhbGciOiJIUzI1NiJ9...`（tenant:JWT），claims: `tenant/userId/accountId/exp/nbf/jti`，有效期 7 天。
 - `Partitions\owner%3A<ownerDir>\Network\Cookies`：SQLite，`value` 列是**明文** cookie（`agent.teleai.com.cn|operationToken`、`.teleai.com.cn|operToken`）。
 - `users\<ownerDir>\auth.json`：用户自加的 provider 凭据，例如 `{"custom-<uuid>":{"type":"api","key":"oc_sk_..."}}`。
 

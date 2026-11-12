@@ -376,9 +376,9 @@ test('pool: keys are issued, resolved and capped by quota', async () => {
 test('pool: accounts decode their token and dedupe by tenant+user', async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'tpb-acc-'));
   const { addAccount, listAccounts, toggleAccount, removeAccount, decodeToken } = await import('../src/pool.mjs');
-  const payload = Buffer.from(JSON.stringify({ tenant: 'Em9xR4', userId: 'u1', exp: Math.floor(Date.now() / 1000) + 86400 })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({ tenant: 'DEMO01', userId: 'u1', exp: Math.floor(Date.now() / 1000) + 86400 })).toString('base64url');
   const token = 'h.' + payload + '.s';
-  assert.equal(decodeToken(token).tenant, 'Em9xR4');
+  assert.equal(decodeToken(token).tenant, 'DEMO01');
   const a = addAccount(tmp, { name: 'one', token });
   assert.equal(a.userId, 'u1');
   addAccount(tmp, { name: 'dup', token });
